@@ -1,0 +1,69 @@
+STATS
+#https://github.com/naokishibuya/car-behavioral-cloning
+6428/6428 [==============================] - 684s - loss: 6.8983e-06 - val_loss: 2.5524e-13
+6428/6428 [==============================] - 1758s - loss: 7.2504e-07 - val_loss: 6.4672e-09  with flip
+=========0.4 left 0.3 right , no flip  steps_per_epoch=len(train_lines)*2 ,  car crashing after steep curve
+=========0.4 left 0.3 right , flip steps_per_epoch=len(train_lines)*2 ,  car crashing after steep curve
+12855/12856 [============================>.] - ETA: 0s - loss: 2.7988e-04   
+12856/12856 [==============================] - 5196s - loss: 2.7985e-04 - val_loss: 1.3847e-06
+
+
+Network:   10.240.1.0/29         
+Broadcast: 10.240.1.7            
+HostMin:   10.240.1.1            
+HostMax:   10.240.1.6            
+Hosts/Net: 6                     (Private Internet)          
+
+gcloud config set compute/zone \
+    us-central1-c
+
+gcloud beta compute tpus create demo-tpu \
+    --range=10.240.1.0/29 \
+    --version=1.8 \
+    --network=default
+
+chk-tpu-node-1
+
+export TPU_NAME="node-1"
+export PATH=/usr/local/cuda-9.0/bin${PATH:+:${PATH}}
+
+export LD_LIBRARY_PATH="/usr/local/cuda-10.0/lib64"
+export CUDA_HOME=/usr/local/cuda-10.0
+
+wget http://47.30.199.100/libcudnn7_7.4.2.24-1+cuda10.0_amd64.deb
+
+docker volume ls -q -f driver=nvidia-docker | xargs -r -I{} -n1 docker ps -q -a -f volume={} | xargs -r docker rm -f
+sudo apt-get purge -y nvidia-docker
+
+
+sudo apt-get install docker-ce=5:18.09.1~3-0~ubuntu-xenial docker-ce-cli=5:18.09.1~3-0~ubuntu-xenial containerd.io
+
+
+
+
+
+
+
+
+
+
+sudo nvidia-docker run --rm --name tf1 -p 8888:8888 -p 6006:6006 redaboumahdi/image_processing:gpu jupyter notebook --allow-root
+
+
+sudo docker run --rm --name tf1 -p 8888:8888 -p 6006:6006 redaboumahdi/image_processing:cpu jupyter notebook --allow-root
+
+nvidia-docker run -it -v ~/docker_tensorflow/:/root/docker_tensorflow -- name docker-py3-tensorflow-jupyter-gpu tensorflow/tensorflow:latest-gpu-py3-jupyter bash
+​
+
+
+
+
+
+
+
+
+
+
+
+
+

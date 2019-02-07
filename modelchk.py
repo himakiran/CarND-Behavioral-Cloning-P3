@@ -11,23 +11,15 @@ import numpy as np
 import sklearn
 
 # Importing training data 
-PTH_CSV = "../../../opt/carnd_p3/data/driving_log.csv"
-PTH_IMG = "../../../opt/carnd_p3/data/IMG/"
+PTH_CSV = "../../../opt/carnd_p3/chk_trg_data/driving_log.csv"
+PTH_IMG = "../../../opt/carnd_p3/chk_trg_data/IMG/"
 #PTH_CSV = "../data_bhvr_cln/driving_log.csv"
 #PTH_IMG = "../data_bhvr_cln/IMG/"
 
 lines=[]
 
 with open(PTH_CSV) as csvfile:
-    has_header = csv.Sniffer().has_header(csvfile.read(1024))
-    csvfile.seek(0)  # Rewind.
     reader = csv.reader(csvfile)
-    if has_header:
-        #print header
-        for line in reader:
-            print(line)
-            break
-        next(reader)  # Skip header row.
     for line in reader:
         lines.append(line)
 #print("Total length of data : {}".format(len(lines)))
@@ -84,7 +76,7 @@ def  balance_data(data,min_reqd,max_reqd):
     return data_output
 
 # Balance Training data
-train_lines_balanced = balance_data(np.array(train_lines),10,20)
+train_lines_balanced = balance_data(np.array(train_lines),13,20)
 # Checking 
 #print("Total length of balanced Training data : {}".format(len(train_lines_balanced)))
 #print("Total length of balanced Validation data : {}".format(len(validation_lines_balanced)))
@@ -109,12 +101,12 @@ def generator(samples, batch_size=32):
                 current_path = PTH_IMG +f_name
                 image = ndimage.imread(current_path)
                 # Appending original image
-                images.append(image)
-                measurement = float(line[3])
-                measurements.append(measurement)
+                # images.append(image)
+                # measurement = float(line[3])
+                # measurements.append(measurement)
                 #appending flipped image
-                images.append(np.fliplr(image))
-                measurements.append(-measurement)
+                #images.append(np.fliplr(image))
+                #measurements.append(-measurement)
                 # appending left camera image and steering angle with offset
                 # src_path = batch_sample[1]
                 # f_name = src_path.split('/')[-1]
@@ -182,4 +174,4 @@ model.fit_generator(train_generator, steps_per_epoch=len(train_lines_balanced)*1
 
 # Saving the mode
 
-model.save('model.h5')
+model.save('modelchk.h5')
