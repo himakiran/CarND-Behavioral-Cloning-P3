@@ -1,30 +1,15 @@
 # **Behavioral Cloning** 
 
-## Writeup Template
+## Self Driving Car Nano Degree
 
-### You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
+### CHUNDI HIMAKIRAN KUMAR
 
 ---
 
 **Behavioral Cloning Project**
 
-The goals / steps of this project are the following:
-* Use the simulator to collect data of good driving behavior
-* Build, a convolution neural network in Keras that predicts steering angles from images
-* Train and validate the model with a training and validation set
-* Test that the model successfully drives around track one without leaving the road
-* Summarize the results with a written report
-
-
-[//]: # (Image References)
-
-[image1]: ./examples/placeholder.png "Model Visualization"
-[image2]: ./examples/placeholder.png "Grayscaling"
-[image3]: ./examples/placeholder_small.png "Recovery Image"
-[image4]: ./examples/placeholder_small.png "Recovery Image"
-[image5]: ./examples/placeholder_small.png "Recovery Image"
-[image6]: ./examples/placeholder_small.png "Normal Image"
-[image7]: ./examples/placeholder_small.png "Flipped Image"
+This report consists of the steps taken to reach the solution in the form of model.py
+which is used to generate model.h5 that allows the car to successfully complete Track one.
 
 ## Rubric Points
 ### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
@@ -38,7 +23,7 @@ My project includes the following files:
 * model.py containing the script to create and train the model
 * drive.py for driving the car in autonomous mode
 * model.h5 containing a trained convolution neural network 
-* writeup_report.md or writeup_report.pdf summarizing the results
+* writeup_report.pdf summarizing the results
 
 #### 2. Submission includes functional code
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
@@ -50,80 +35,77 @@ python drive.py model.h5
 
 The model.py file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
 
-### Model Architecture and Training Strategy
+### Model Architecture 
 
-#### 1. An appropriate model architecture has been employed
+#### 1. An appropriate model architecture has been employed as discussed below
 
-My model consists of a convolution neural network with 3x3 filter sizes and depths between 32 and 128 (model.py lines 18-24) 
+We have used the NVIDIA model architecture for this project. The model consists of 
 
-The model includes RELU layers to introduce nonlinearity (code line 20), and the data is normalized in the model using a Keras lambda layer (code line 18). 
+* 1st layer of CNN: 24 fliters, 5x5 kernel, 2x2 stride
+* 2nd layer of CNN: 36 filters, 5x5 kernel, 2x2 stride
+* 3rd layer of CNN: 48 filters, 5x5 kernel, 2x2 stride
+* 4th layer of CNN: 64 filters, 3x3 kernel, non-stride
+* 5th layer of CNN: 64 filters, 3x3 kernel, non-stride
+* Dropout(dropout 50% of connection)
+* Flatten
+* 1st fully connected layer: 100 neurons
+* 2nd fully connected layer: 50 neurons
+* 3rd fully connected layer: 10 neurons
+* Output:(Measurement)
+
 
 #### 2. Attempts to reduce overfitting in the model
 
-The model contains dropout layers in order to reduce overfitting (model.py lines 21). 
-
-The model was trained and validated on different data sets to ensure that the model was not overfitting (code line 10-16). The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
+The model contains one dropout layer in order to reduce overfitting as shown above. 
 
 #### 3. Model parameter tuning
 
-The model used an adam optimizer, so the learning rate was not tuned manually (model.py line 25).
+The model used an adam optimizer, so the learning rate was not tuned manually .
 
 #### 4. Appropriate training data
 
-Training data was chosen to keep the vehicle driving on the road. I used a combination of center lane driving, recovering from the left and right sides of the road ... 
+The Sample training data was used to derive the final solution though in the experimental trials, the trained data on track
+one was used. Finally however the solution could be achieved using the sample data set.
 
-For details about how I created the training data, see the next section. 
 
-### Model Architecture and Training Strategy
 
-#### 1. Solution Design Approach
+### Solution Design Approach
 
-The overall strategy for deriving a model architecture was to ...
-
-My first step was to use a convolution neural network model similar to the ... I thought this model might be appropriate because ...
-
-In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
-
-To combat the overfitting, I modified the model so that ...
-
-Then I ... 
-
-The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I ....
-
-At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
+* 1. Firstly we tried to derive the solution using the sample data set and the NVIDIA model architecture without any change.
+When that did not succeed, we decided to first visualize the training data.
+* 2. The visualization of the sample training data set which was obtained by a 80% split of the sample data provided can be observed in the Jupyter Notebook included.
+* 3. We see that there is an excessive values of the zero steering angle measurement. Hence we decided to balance the data. By trial and error we settled on 80/100 ie all steering angles whose qty was less than 80 were raised up to 80 and all those whose sum was beyond 100 brought down to 100. Post balanicng we 
+* 4. When even after this did not bring about much success, we decided to work with our own trained data. However we realized that the trained data was inferior to the sample data provided as the training was done using the keyboard and the results were not encouraging.
+* 5. Hence we decided to augment the data after balancing it so that we could get more data for training. Augmentation was 
+carried out using
+    * (a) All images were flipped and the negative of the original measurement was recorded for the flipped image.
+    * (b) Left camera images were included and the mesaurement value of the original image was decremented by a fixed qty which
+    was yet another parameter for fine tunign the alogorithm.
+    * (c) Right camera images were included and the mesaurement value of the original image was incremented by a fixed qty which
+    was yet another parameter for fine tuning the alogorithm.
+* 6. Finally the data was run through the model and success was acheieved with 0.4 as the parameter above and training for two epochs.
+    
 
 #### 2. Final Model Architecture
 
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
+* The final model architecture consisted of the following
+    * (a) Reading in the data and splitting it to get 80% training and 20% validation data.
+    * (b) Balancing the data with 80/100 which was a paramater value we got after extensive trial and error.
+    * (c) Augmenting the data as explained above
+    * (d) Feeding the data to unaltered NVIDIA CNN and compiled using the ADAM optimizer with default values.
+    * (e) Training the model for two epochs.
 
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
+#### 3. A Note on Generators and Google Cloud Compute
 
-![alt text][image1]
+* 1. Generators in python help us deal with large memory operations. However the side effect they had in this project was that
+the Udacity GPU was extremely slow when processing the code with the generator function. A lot of Udacity GPU hours were wasted
+in training as the GPU would take very long time and the workspace would go idle and we would lose all the training.
 
-#### 3. Creation of the Training Set & Training Process
-
-To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
-
-![alt text][image2]
-
-I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to .... These images show what a recovery looks like starting from ... :
-
-![alt text][image3]
-![alt text][image4]
-![alt text][image5]
-
-Then I repeated this process on track two in order to get more data points.
-
-To augment the data sat, I also flipped images and angles thinking that this would ... For example, here is an image that has then been flipped:
-
-![alt text][image6]
-![alt text][image7]
-
-Etc ....
-
-After the collection process, I had X number of data points. I then preprocessed this data by ...
-
-
-I finally randomly shuffled the data set and put Y% of the data into a validation set. 
-
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
+* 2. The above led us to use Google Cloud Compute which gives 300 USD worth of Cloud compute resources. We initailly tried to
+train the model using Google TPU but failed as the code had to be rewritten for the TPU. Later we trained the model extensively
+using a Ubuntu VM with a P100 Tesla GPU . Thanks to this URL 
+ [Google_Cloud_VM_How-To](https://mc.ai/easy-set-up-of-gpu-enabled-tensorflow-on-google-cloud-or-any-other-virtual-machine/)
+ 
+#### 4. Jupyter notebook
+* 1. I found it much useful to run parts of code on the Jupyter notebook to both examine and visualize data and also
+do the trial and error with fine tuning paarameters. I am including a copy of the jupyter notebook saved in pdf format.

@@ -1,7 +1,5 @@
 # Model.py
 # Sample data location /opt/carnd_p3/data/
-# Model.py
-# Sample data location /opt/carnd_p3/data/
 # https://d17h27t6h515a5.cloudfront.net/topher/2016/December/584f6edd_data/data.zipunzip 
 
 import os
@@ -11,8 +9,8 @@ import numpy as np
 import sklearn
 
 # Importing training data 
-PTH_CSV = "../../../opt/carnd_p3/data/driving_log.csv"
-PTH_IMG = "../../../opt/carnd_p3/data/IMG/"
+PTH_CSV = "data/driving_log.csv"
+PTH_IMG = "data/IMG/"
 #PTH_CSV = "../data_bhvr_cln/driving_log.csv"
 #PTH_IMG = "../data_bhvr_cln/IMG/"
 
@@ -23,10 +21,6 @@ with open(PTH_CSV) as csvfile:
     csvfile.seek(0)  # Rewind.
     reader = csv.reader(csvfile)
     if has_header:
-        #print header
-        for line in reader:
-            print(line)
-            break
         next(reader)  # Skip header row.
     for line in reader:
         lines.append(line)
@@ -41,9 +35,7 @@ train_lines, validation_lines = train_test_split(lines, test_size=0.2)
 # Distibuting data to correct the imabalance
 # We shall reduce the data points with zero as the steering angle and increase the other data points 
 # which are in minority.
-# As a baseline we require minimum 80 and maximum 100 for the training data set. 
-# so all data points below 80 will be brought up to 80 and those above 100 will be reduced to 100.
-
+# After many trails we rsettle at minimum 80 and maximum 100 for the training data set.
 def  balance_data(data,min_reqd,max_reqd):
     data_output = data.copy()
     
@@ -84,59 +76,107 @@ def  balance_data(data,min_reqd,max_reqd):
     return data_output
 
 # Balance Training data
-train_lines_balanced = balance_data(np.array(train_lines),10,20)
+train_lines_balanced = balance_data(np.array(train_lines),80,100)
+
 # Checking 
 #print("Total length of balanced Training data : {}".format(len(train_lines_balanced)))
 #print("Total length of balanced Validation data : {}".format(len(validation_lines_balanced)))
 
-def generator(samples, batch_size=32):
-    num_samples = len(samples)
-    while 1: # Loop forever so the generator never terminates
-        shuffle(samples)
-        for offset in range(0, num_samples, batch_size):
-            batch_samples = samples[offset:offset+batch_size]
+# The below generator caused the Udacity GPU to slow down and we lost many hours...
+# def generator(samples, batch_size=32):
+#     num_samples = len(samples)
+#     while 1: # Loop forever so the generator never terminates
+#         shuffle(samples)
+#         for offset in range(0, num_samples, batch_size):
+#             batch_samples = samples[offset:offset+batch_size]
 
-            images = []
-            measurements = []
+#             images = []
+#             measurements = []
 
-            for batch_sample in batch_samples:
-                #print(batch_sample)
-                src_path = batch_sample[0]
-                #print(src_path)
-                f_name = src_path.split('/')[-1]
-                #print(f_name)
-                #break
-                current_path = PTH_IMG +f_name
-                image = ndimage.imread(current_path)
-                # Appending original image
-                images.append(image)
-                measurement = float(line[3])
-                measurements.append(measurement)
-                #appending flipped image
-                images.append(np.fliplr(image))
-                measurements.append(-measurement)
-                # appending left camera image and steering angle with offset
-                # src_path = batch_sample[1]
-                # f_name = src_path.split('/')[-1]
-                # current_path = PTH_IMG +f_name
-                # image = ndimage.imread(current_path)
-                # images.append(image)
-                # measurements.append(measurement+0.4)
-                # # appending right camera image and steering angle with offset
-                # src_path = batch_sample[2]
-                # f_name = src_path.split('/')[-1]
-                # current_path = PTH_IMG +f_name
-                # image = ndimage.imread(current_path)
-                # images.append(image)
-                # measurements.append(measurement-0.3)
+#             for batch_sample in batch_samples:
+#                 #print(batch_sample)
+#                 src_path = batch_sample[0]
+#                 #print(src_path)
+#                 f_name = src_path.split('/')[-1]
+#                 #print(f_name)
+#                 #break
+#                 current_path = PTH_IMG +f_name
+#                 image = ndimage.imread(current_path)
+#                 # Appending original image
+#                 images.append(image)
+#                 measurement = float(line[3])
+#                 measurements.append(measurement)
+#                 #appending flipped image
+#                 images.append(np.fliplr(image))
+#                 measurements.append(-measurement)
+#                 #appending left camera image and steering angle with offset
+#                 src_path = batch_sample[1]
+#                 f_name = src_path.split('/')[-1]
+#                 current_path = PTH_IMG +f_name
+#                 image = ndimage.imread(current_path)
+#                 images.append(image)
+#                 measurements.append(measurement+0.25)
+#                 # appending right camera image and steering angle with offset
+#                 src_path = batch_sample[2]
+#                 f_name = src_path.split('/')[-1]
+#                 current_path = PTH_IMG +f_name
+#                 image = ndimage.imread(current_path)
+#                 images.append(image)
+#                 measurements.append(measurement-0.25)
 
-            # trim image to only see section with road
-            X_train = np.array(images)
-            y_train = np.array(measurements)
-            yield sklearn.utils.shuffle(X_train, y_train)
+#             # trim image to only see section with road
+#             X_train = np.array(images)
+#             y_train = np.array(measurements)
+#             yield sklearn.utils.shuffle(X_train, y_train)
 
-train_generator = generator(train_lines_balanced, batch_size=40)
-validation_generator = generator(validation_lines, batch_size=40)
+# train_generator = generator(train_lines_balanced, batch_size=40)
+# validation_generator = generator(validation_lines, batch_size=40)
+
+# The function to augment the sample data 
+# Offset = 0.4 tunable parameter value reached after many trials
+
+def  generate_data(lines):
+    images = []
+    measurements = []
+
+    for line in lines:
+        #print(line)
+        src_path = line[0]
+        #print(src_path)
+        f_name = src_path.split('/')[-1]
+        #print(f_name)
+        #break
+        current_path = PTH_IMG +f_name
+        image = ndimage.imread(current_path)
+        # Appending original image
+        images.append(image)
+        measurement = float(line[3])
+        measurements.append(measurement)
+        #appending flipped image
+        images.append(np.fliplr(image))
+        measurements.append(-measurement)
+        #appending left camera image and steering angle with offset
+        src_path = line[1]
+        f_name = src_path.split('/')[-1]
+        current_path = PTH_IMG +f_name
+        image = ndimage.imread(current_path)
+        images.append(image)
+        measurements.append(measurement+0.4)
+        # appending right camera image and steering angle with offset
+        src_path = line[2]
+        f_name = src_path.split('/')[-1]
+        current_path = PTH_IMG +f_name
+        image = ndimage.imread(current_path)
+        images.append(image)
+        measurements.append(measurement-0.4)
+
+    
+    X_data = np.array(images)
+    y_data = np.array(measurements)
+    return X_data,y_data
+
+X_train,y_train = generate_data(train_lines_balanced)
+X_valid,y_valid = generate_data(validation_lines)
 
 
 # Creating the model
@@ -150,12 +190,17 @@ from keras.callbacks import ModelCheckpoint
 
 
 
-# Adding a Nvidia  model to train on the sample data for completing track 1
+# Adding teh original Nvidia  model to train on the sample data for completing track 1
 
 model = Sequential()
 # trim image to only see section with road
+# Did not help much
 #model.add(Cropping2D(cropping=((50,20), (0,0))))
+
+# preprocessing 
 model.add(Lambda(lambda x: x/127.5-1.0, input_shape=(160,320,3)))
+
+
 model.add(Conv2D(24, 5, 5, activation='elu', subsample=(2, 2)))
 model.add(Conv2D(36, 5, 5, activation='elu', subsample=(2, 2)))
 model.add(Conv2D(48, 5, 5, activation='elu', subsample=(2, 2)))
@@ -169,6 +214,7 @@ model.add(Dense(10, activation='elu'))
 model.add(Dense(1))
 
 # Adding checkpoint
+
 checkpoint = ModelCheckpoint('model-{epoch:03d}.h5',
                                  monitor='val_loss',
                                  verbose=0,
@@ -176,10 +222,13 @@ checkpoint = ModelCheckpoint('model-{epoch:03d}.h5',
                                  mode='auto')
 
 model.compile(loss='mse',optimizer='adam')
-model.fit_generator(train_generator, steps_per_epoch=len(train_lines_balanced)*1,\
-                    validation_data=validation_generator,\
-                    validation_steps=len(validation_lines)*1, epochs=1,callbacks=[checkpoint])
 
-# Saving the mode
+# model.fit_generator(train_generator, steps_per_epoch=len(train_lines_balanced)*1,\
+#                     validation_data=validation_generator,\
+#                     validation_steps=len(validation_lines)*1, epochs=1,callbacks=[checkpoint])
+
+model.fit(X_train, y_train, validation_data=(X_valid,y_valid), epochs=2, batch_size=40,callbacks=[checkpoint])
+
+# Saving the model
 
 model.save('model.h5')
